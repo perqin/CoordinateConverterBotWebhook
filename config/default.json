@@ -3,6 +3,9 @@
     "token": "your:token"
   },
   "hook": {
-    "host": "perqinccbw.localtunnel.me"
+    "host": "perqinccbw.localtunnel.me",
+    "listen": {
+      "port": 3000
+    }
   }
 }

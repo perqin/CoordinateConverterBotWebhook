@@ -11,6 +11,6 @@ bot.telegram.setWebhook(config.hook.url);
 
 // Start https webhook
 // FYI: First non-file reply will be served via webhook response
-bot.startWebhook(config.hook.path, null, 3000);
+bot.startWebhook(config.hook.path, null, config.hook.listen.port);
 
 bot.on('text', (ctx) => ctx.reply('Hey there!'));
