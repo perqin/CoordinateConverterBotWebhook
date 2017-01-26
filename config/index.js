@@ -1,16 +1,14 @@
 'use strict';
 
-var config = {};
-var files = ['hook'];
+const config = require('config');
 
-for (var file in files) {
-    var c;
-    try {
-        c = require(file + '-prod');
-    } catch (err) {
-        c = require(file + '-dev');
-    }
-    config[file] = c;
-}
+let c = {
+    auth: config.get('auth'),
+    hook: config.get('hook')
+};
 
-module.exports = config;
+// https://sub.domain.domain.tld/token-as:secret-path
+c.hook.path = '/' + c.auth.token;
+c.hook.url = 'https://' + c.hook.host + c.hook.path;
+
+module.exports = c;

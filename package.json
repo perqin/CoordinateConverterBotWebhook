@@ -6,6 +6,7 @@
     "start": "node ./app.js"
   },
   "dependencies": {
+    "config": "^1.24.0",
     "telegraf": "^3.6.4"
   }
 }

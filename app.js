@@ -3,7 +3,7 @@
 const Telegraf = require('telegraf');
 const config = require('./config');
 
-const bot = new Telegraf(process.env.BOT_TOKEN || config.hook.token);
+const bot = new Telegraf(process.env.BOT_TOKEN || config.auth.token);
 
 // Set telegram webhook
 // npm install -g localtunnel && lt --port 3000

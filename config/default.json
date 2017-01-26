@@ -1,0 +1,8 @@
+{
+  "auth": {
+    "token": "your:token"
+  },
+  "hook": {
+    "host": "perqinccbw.localtunnel.me"
+  }
+}
