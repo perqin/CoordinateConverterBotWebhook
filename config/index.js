@@ -4,7 +4,8 @@ const config = require('config');
 
 let c = {
     auth: config.get('auth'),
-    hook: config.get('hook')
+    hook: config.get('hook'),
+    proxy: config.get('proxy')
 };
 
 // https://sub.domain.domain.tld/token-as:secret-path
