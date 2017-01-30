@@ -1,5 +1,6 @@
 'use strict';
 
+const url = require('url');
 const Telegraf = require('telegraf');
 const config = require('./config');
 const coordTransform = require('coordtransform');
@@ -24,7 +25,7 @@ bot.on('text', (ctx) => msgRouter(ctx));
 function msgRouter(ctx) {
     if (ctx.updateType === 'message') {
         if (ctx.updateSubType === 'text') {
-            handleUrl(ctx, ctx.message.text);
+            handleMessageText(ctx);
         } else {
             ctx.reply('Unsupported message type.');
         }
@@ -33,19 +34,48 @@ function msgRouter(ctx) {
     }
 }
 
-function handleUrl(ctx, url) {
-    let uo = require('url').parse(url, true);
-    // http://maps.google.com/maps?q=22.766619,114.318351
-    if (uo.host === 'maps.google.com' && uo.pathname === '/maps' && Object.prototype.hasOwnProperty.call(uo.query, 'q')) {
-        let lat = +uo.query['q'].split(',')[0];
-        let long = +uo.query['q'].split(',')[1];
-        // For Google map
-        let gcj = [long, lat];
-        // For AMap
-        let wgs = coordTransform.wgs84togcj02(gcj[0], gcj[1]);
-        let resMd = `**Coordinate (Latitude, Longitude)**\n`
-            + `WGS84: (${wgs[1]}, ${wgs[0]}) [Google Map](http://maps.google.com/maps?q=${wgs[1]},${wgs[0]})\n`
-            + `GCJ02: (${lat}, ${long}) [AMap (Unavailable yet)](http://amap.com)\n`;
-        ctx.replyWithMarkdown(resMd);
+function handleMessageText(ctx) {
+    let urlObjects = [];
+    // Find URL from entities
+    if (ctx.message.entities) {
+        urlObjects = ctx.message.entities.filter(function (value) {
+            return (value.type === 'text_link' || value.type === 'url');
+        }).map(function (value) {
+            if (value.type === 'text_link') {
+                return url.parse(value.url, true);
+            } else {
+                return url.parse(ctx.message.text.substr(value.offset, value.length), true);
+            }
+        }).filter(function (value) {
+            return value.host === 'maps.google.com' && value.pathname === '/maps'
+                && Object.prototype.hasOwnProperty.call(value.query, 'q');
+        });
+    } else {
+        urlObjects = [url.parse(ctx.message.text)];
     }
+    if (urlObjects.length > 0) {
+        urlObjects.forEach(function (value) {
+            let lat = +value.query['q'].split(',')[0];
+            let long = +value.query['q'].split(',')[1];
+            // From bot, which is real coordinate
+            // let wgs = [long, lat];
+            // For Google map, which is encrypted
+            let gcj = coordTransform.wgs84togcj02(long, lat);
+            let resMd = `(${lat}, ${long}): [View in Google Map](http://maps.google.com/maps?q=${gcj[1]},${gcj[0]})\n`;
+            ctx.replyWithMarkdown(resMd);
+        });
+    } else {
+        ctx.reply('No Google Map url found.');
+    }
+    // http://maps.google.com/maps?q=22.123456,114.123456
+    /*
+    My phone gets GPS coordinate which is in GCJ.
+    My Google Map uses map in GCJ.
+    So I can use it for navigation.
+    Ingress's map use WGS.
+    So it has error.
+    Bot also uses WGS.
+    So it also has error.
+    I must convert WGS from bot into GCJ for Google Map.
+     */
 }
